@@ -1,3 +1,5 @@
+require "forwardable"
+
 class Bottles
   def song
     verses 99, 0
@@ -10,10 +12,10 @@ class Bottles
 
   def verse number
     bottle_number = BottleNumber.for number
-    "#{bottle_number.quantity.capitalize} #{bottle_number.container} of beer on the wall, " +
-    "#{bottle_number.quantity} #{bottle_number.container} of beer.\n" +
+    "#{bottle_number} of beer on the wall, ".capitalize +
+    "#{bottle_number} of beer.\n" +
     "#{bottle_number.action}" +
-    "#{bottle_number.successor.quantity} #{bottle_number.successor.container} of beer on the wall.\n"
+    "#{bottle_number.successor} of beer on the wall.\n"
   end
 end
 
@@ -26,13 +28,16 @@ class BottleNumber
 
   def self.for number
     case number
-    when 0
-      BottleNumber0.new number, BottleNumber.new(number)
-    when 1
-      BottleNumber1.new number, BottleNumber.new(number)
+    when 0 then BottleNumber0.new number, BottleNumber.new(number)
+    when 1 then BottleNumber1.new number, BottleNumber.new(number)
+    when 6 then BottleNumber6.new number, BottleNumber.new(number)
     else
       BottleNumber.new number
     end
+  end
+
+  def to_s
+    "#{quantity} #{container}"
   end
 
   def action
@@ -53,19 +58,21 @@ class BottleNumber
 end
 
 class BottleNumber0
+  extend Forwardable
   attr_reader :number, :bottle_number
+  def_delegators :@bottle_number, :container
 
   def initialize number, bottle_number
     @number = number
     @bottle_number = bottle_number
   end
 
-  def action
-    "Go to the store and buy some more, "
+  def to_s
+    "#{quantity} #{container}"
   end
 
-  def container
-    bottle_number.container
+  def action
+    "Go to the store and buy some more, "
   end
 
   def quantity
@@ -78,11 +85,17 @@ class BottleNumber0
 end
 
 class BottleNumber1
+  extend Forwardable
   attr_reader :number, :bottle_number
+  def_delegators :@bottle_number, :quantity, :successor
 
   def initialize number, bottle_number
     @number = number
     @bottle_number = bottle_number
+  end
+
+  def to_s
+    "#{quantity} #{container}"
   end
 
   def action
@@ -92,12 +105,27 @@ class BottleNumber1
   def container
     "bottle"
   end
+end
 
-  def quantity
-    bottle_number.quantity
+class BottleNumber6
+  extend Forwardable
+  attr_reader :number, :bottle_number
+  def_delegators :@bottle_number, :action, :successor
+
+  def initialize number, bottle_number
+    @number = number
+    @bottle_number = bottle_number
   end
 
-  def successor
-    bottle_number.successor
+  def to_s
+    "#{quantity} #{container}"
+  end
+
+  def quantity
+    "1"
+  end
+
+  def container
+    "six-pack"
   end
 end
